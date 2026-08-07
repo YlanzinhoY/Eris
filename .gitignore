@@ -1,0 +1,6 @@
+hv-game-cli.exe
+hv-game-cli
+dist/
+*.log
+.DS_Store
+
