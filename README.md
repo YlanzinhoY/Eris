@@ -1,4 +1,4 @@
-# HV Game CLI
+# Éris
 
 CLI pública para consultar o catálogo gerado pelo scraper, localizar instalações
 de jogos e baixar releases diretamente para a pasta encontrada.
