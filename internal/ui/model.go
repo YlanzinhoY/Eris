@@ -241,7 +241,7 @@ func (m model) View() string {
 		return errorStyle.Render("Nenhum jogo disponível.")
 	}
 
-	header := titleStyle.Render(" HV GAME CLI ") + "  " + mutedStyle.Render("catálogo de releases")
+	header := titleStyle.Render("ÉRIS") + "  " + mutedStyle.Render("catálogo de releases")
 	listPanel := m.renderList()
 	detailPanel := m.renderDetails()
 
