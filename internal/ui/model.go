@@ -15,6 +15,12 @@ import (
 	"github.com/enzom/hv-game-cli/internal/scanner"
 )
 
+const (
+	wideLayoutMinWidth = 118
+	gameListPanelWidth = 52
+	detailPanelWidth   = 58
+)
+
 var (
 	colorPurple = lipgloss.Color("#9B7BFF")
 	colorCyan   = lipgloss.Color("#45D6D0")
@@ -247,7 +253,7 @@ func (m model) View() string {
 	detailPanel := m.renderDetails()
 
 	var body string
-	if m.width >= 92 {
+	if m.width >= wideLayoutMinWidth {
 		body = lipgloss.JoinHorizontal(lipgloss.Top, listPanel, "  ", detailPanel)
 	} else {
 		body = lipgloss.JoinVertical(lipgloss.Left, listPanel, detailPanel)
@@ -275,8 +281,8 @@ func (m model) View() string {
 }
 
 func (m model) renderList() string {
-	width := 43
-	if m.width > 0 && m.width < 92 {
+	width := gameListPanelWidth
+	if m.width > 0 && m.width < wideLayoutMinWidth {
 		width = max(32, m.width-8)
 	}
 
@@ -339,8 +345,8 @@ func (m model) renderDetails() string {
 		mutedStyle.Render("DOWNLOAD"),
 		m.renderDownloadStatus(game),
 	)
-	width := 58
-	if m.width > 0 && m.width < 92 {
+	width := detailPanelWidth
+	if m.width > 0 && m.width < wideLayoutMinWidth {
 		width = max(32, m.width-8)
 	}
 	return panelStyle.Width(width).Render(lipgloss.JoinVertical(lipgloss.Left, sections...))

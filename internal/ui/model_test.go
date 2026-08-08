@@ -75,3 +75,16 @@ func TestRenderListLongNameDoesNotExpandPanel(t *testing.T) {
 		t.Fatalf("nome longo expandiu o painel: largura = %d, esperava %d", got, want)
 	}
 }
+
+func TestWideGameListFitsLongTitle(t *testing.T) {
+	game := catalog.Game{Name: "monster hunter stories 3: twisted reflection"}
+
+	row := formatGameListRow(game, true, gameListPanelWidth)
+
+	if !strings.Contains(row, game.Name) {
+		t.Fatalf("painel largo truncou o título: %q", row)
+	}
+	if strings.Contains(row, "…") {
+		t.Fatalf("painel largo exibiu reticências desnecessárias: %q", row)
+	}
+}
