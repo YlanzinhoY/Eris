@@ -15,9 +15,13 @@ var (
 	extraRoots  []string
 )
 
+// Version is replaced at build time for tagged releases.
+var Version = "dev"
+
 var rootCmd = &cobra.Command{
 	Use:           "eris",
 	Short:         "Encontre seus jogos e acesse releases disponíveis",
+	Version:       Version,
 	SilenceUsage:  true,
 	SilenceErrors: true,
 	RunE: func(cmd *cobra.Command, _ []string) error {
