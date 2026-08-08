@@ -22,6 +22,9 @@ jobs:
       GH_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
       GH_REPO: YlanzinhoY/Eris
       GH_CONFIG_DIR: ${{ gitea.workspace }}\.gh-config
+      INNO_SETUP_VERSION: 7.0.2
+      INNO_TOOLS_DIR: ${{ gitea.workspace }}\.release-tools
+      INNO_COMPILER_DIR: ${{ gitea.workspace }}\.release-tools\InnoSetup7
 
     steps:
       - name: Check out repository
@@ -41,6 +44,70 @@ jobs:
           git --version
           go version
           gh --version
+
+      - name: Download verified Inno Setup compiler
+        run: |
+          $ErrorActionPreference = "Stop"
+          $releaseTag = "is-$($env:INNO_SETUP_VERSION.Replace('.', '_'))"
+          $installerName = "innosetup-$env:INNO_SETUP_VERSION-x64.exe"
+          $installerPath = Join-Path $env:INNO_TOOLS_DIR $installerName
+
+          New-Item -ItemType Directory -Path $env:INNO_TOOLS_DIR -Force | Out-Null
+
+          gh release download $releaseTag `
+              --repo "jrsoftware/issrc" `
+              --pattern $installerName `
+              --dir $env:INNO_TOOLS_DIR `
+              --clobber
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "Inno Setup download failed"
+          }
+
+          gh release verify-asset $installerPath --repo "jrsoftware/issrc"
+          if ($LASTEXITCODE -ne 0) {
+              throw "Inno Setup GitHub attestation verification failed"
+          }
+
+          $signature = Get-AuthenticodeSignature -LiteralPath $installerPath
+          if ($signature.Status -ne "Valid" -or
+              $signature.SignerCertificate.Subject -notmatch 'Pyrsys B\.V\.') {
+              throw "Invalid Inno Setup Authenticode signature: $($signature.Status)"
+          }
+
+          "Verified signer: $($signature.SignerCertificate.Subject)"
+
+      - name: Extract verified Inno Setup compiler
+        run: |
+          $ErrorActionPreference = "Stop"
+          $installerName = "innosetup-$env:INNO_SETUP_VERSION-x64.exe"
+          $installerPath = Join-Path $env:INNO_TOOLS_DIR $installerName
+          $installerLog = Join-Path $env:INNO_TOOLS_DIR "innosetup.log"
+
+          $arguments = "/SP- /VERYSILENT /SUPPRESSMSGBOXES /NORESTART " +
+              "/CURRENTUSER /PORTABLE=1 /DIR=`"$env:INNO_COMPILER_DIR`" " +
+              "/LOG=`"$installerLog`""
+          $process = Start-Process `
+              -FilePath $installerPath `
+              -ArgumentList $arguments `
+              -Wait `
+              -PassThru `
+              -WindowStyle Hidden
+
+          if ($process.ExitCode -ne 0) {
+              if (Test-Path -LiteralPath $installerLog) {
+                  Get-Content -LiteralPath $installerLog | Select-Object -Last 40
+              }
+              throw "Inno Setup portable extraction failed: $($process.ExitCode)"
+          }
+
+          $compilerPath = Join-Path $env:INNO_COMPILER_DIR "ISCC.exe"
+          if (-not (Test-Path -LiteralPath $compilerPath)) {
+              throw "Inno Setup compiler was not extracted"
+          }
+
+          "INNO_COMPILER=$compilerPath" |
+              Out-File -FilePath $env:GITHUB_ENV -Encoding UTF8 -Append
 
       - name: Validate version tag
         run: |
@@ -103,6 +170,9 @@ jobs:
           $packageDirectory = Join-Path $distDirectory $package
           $zipPath = Join-Path $distDirectory "$package.zip"
           $checksumPath = "$zipPath.sha256"
+          $setupBaseName = "$package-setup"
+          $setupPath = Join-Path $distDirectory "$setupBaseName.exe"
+          $setupChecksumPath = "$setupPath.sha256"
 
           New-Item -ItemType Directory -Path $packageDirectory -Force | Out-Null
 
@@ -126,14 +196,37 @@ jobs:
           $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
           "$hash  $package.zip" | Set-Content -LiteralPath $checksumPath -Encoding ASCII
 
+          $version = $env:TAG.Substring(1)
+          & $env:INNO_COMPILER `
+              "/DMyAppVersion=$version" `
+              "/DMySourceDir=$packageDirectory" `
+              "/O$distDirectory" `
+              "/F$setupBaseName" `
+              "installer/eris.iss"
+
+          if ($LASTEXITCODE -ne 0) {
+              throw "Inno Setup build failed"
+          }
+          if (-not (Test-Path -LiteralPath $setupPath)) {
+              throw "Installer was not created at $setupPath"
+          }
+
+          $setupHash = (Get-FileHash -LiteralPath $setupPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$setupHash  $setupBaseName.exe" |
+              Set-Content -LiteralPath $setupChecksumPath -Encoding ASCII
+
       - name: Publish GitHub release
         run: |
           $ErrorActionPreference = "Stop"
           $package = "eris-$env:TAG-windows-amd64"
           $zipPath = "dist/$package.zip"
           $checksumPath = "$zipPath.sha256"
+          $setupPath = "dist/$package-setup.exe"
+          $setupChecksumPath = "$setupPath.sha256"
 
           gh release create $env:TAG `
+              $setupPath `
+              $setupChecksumPath `
               $zipPath `
               $checksumPath `
               --repo $env:GH_REPO `

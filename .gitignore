@@ -3,5 +3,6 @@ eris
 hv-game-cli.exe
 hv-game-cli
 dist/
+.release-tools/
 *.log
 .DS_Store
