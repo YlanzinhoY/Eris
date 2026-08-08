@@ -7,18 +7,21 @@ on:
 
 permissions:
   contents: read
-  releases: write
 
 jobs:
   release:
     name: Build and publish release
-    runs-on: ubuntu-latest
+    runs-on: windows
+
+    defaults:
+      run:
+        shell: powershell
+
     env:
       TAG: ${{ gitea.ref_name }}
-      GITEA_REPOSITORY: ${{ gitea.repository }}
-      GITEA_SERVER_URL: ${{ gitea.server_url }}
-      GITEA_SERVER_TOKEN: ${{ secrets.GITEA_TOKEN }}
-      XDG_CONFIG_HOME: ${{ gitea.workspace }}/.tea-config
+      GH_TOKEN: ${{ secrets.GH_RELEASE_TOKEN }}
+      GH_REPO: YlanzinhoY/Eris
+      GH_CONFIG_DIR: ${{ gitea.workspace }}\.gh-config
 
     steps:
       - name: Check out repository
@@ -33,20 +36,24 @@ jobs:
           cache: true
 
       - name: Validate runner tools
-        shell: bash
         run: |
-          command -v tea
-          command -v zip
-          command -v sha256sum
+          $ErrorActionPreference = "Stop"
+          git --version
+          go version
+          gh --version
 
       - name: Validate version tag
-        shell: bash
         run: |
-          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            echo "Invalid release tag: $TAG"
-            echo "Expected SemVer format: v0.0.1"
-            exit 1
-          fi
+          $ErrorActionPreference = "Stop"
+
+          if ($env:TAG -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') {
+              throw "Invalid release tag: $env:TAG. Expected format: v0.0.1"
+          }
+
+          gh api "repos/$env:GH_REPO/git/ref/tags/$env:TAG" --silent
+          if ($LASTEXITCODE -ne 0) {
+              throw "Tag $env:TAG does not exist on GitHub. Push it to GitHub before Gitea."
+          }
 
       - name: Test
         run: go test ./...
@@ -55,55 +62,85 @@ jobs:
         run: go vet ./...
 
       - name: Extract release notes
-        shell: bash
         run: |
-          awk -v heading="## [$TAG]" '
-            index($0, heading) == 1 { found = 1; next }
-            found && /^## \[/ { exit }
-            found { print }
-            END { if (!found) exit 2 }
-          ' CHANGELOG.md > release-notes.md
+          $ErrorActionPreference = "Stop"
+          $heading = "## [$env:TAG]"
+          $lines = Get-Content -LiteralPath "CHANGELOG.md" -Encoding UTF8
+          $start = -1
 
-          if ! grep -q '[^[:space:]]' release-notes.md; then
-            echo "CHANGELOG.md has no release notes for $TAG"
-            exit 1
-          fi
+          for ($index = 0; $index -lt $lines.Count; $index++) {
+              if ($lines[$index].StartsWith($heading)) {
+                  $start = $index
+                  break
+              }
+          }
+
+          if ($start -lt 0) {
+              throw "CHANGELOG.md has no release notes for $env:TAG"
+          }
+
+          $notes = New-Object System.Collections.Generic.List[string]
+          for ($index = $start + 1; $index -lt $lines.Count; $index++) {
+              if ($lines[$index] -match '^## \[') {
+                  break
+              }
+
+              $notes.Add($lines[$index])
+          }
+
+          $notesText = ($notes -join [Environment]::NewLine).Trim()
+          if ([string]::IsNullOrWhiteSpace($notesText)) {
+              throw "CHANGELOG.md has empty release notes for $env:TAG"
+          }
+
+          $notesText | Set-Content -LiteralPath "release-notes.md" -Encoding UTF8
 
       - name: Build Windows package
-        shell: bash
         run: |
-          package="eris-${TAG}-windows-amd64"
-          package_dir="dist/${package}"
+          $ErrorActionPreference = "Stop"
+          $package = "eris-$env:TAG-windows-amd64"
+          $distDirectory = Join-Path $PWD "dist"
+          $packageDirectory = Join-Path $distDirectory $package
+          $zipPath = Join-Path $distDirectory "$package.zip"
+          $checksumPath = "$zipPath.sha256"
 
-          mkdir -p "$package_dir"
-          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build \
-            -trimpath \
-            -ldflags="-s -w -X github.com/ylanzinhoy/eris/cmd.Version=${TAG}" \
-            -o "${package_dir}/eris.exe" \
-            .
+          New-Item -ItemType Directory -Path $packageDirectory -Force | Out-Null
 
-          cp games.json README.md CHANGELOG.md "$package_dir/"
+          $env:CGO_ENABLED = "0"
+          $env:GOOS = "windows"
+          $env:GOARCH = "amd64"
 
-          (
-            cd dist
-            zip -qr "${package}.zip" "$package"
-            sha256sum "${package}.zip" > "${package}.zip.sha256"
-          )
+          go build `
+              -trimpath `
+              -ldflags "-s -w -X github.com/ylanzinhoy/eris/cmd.Version=$env:TAG" `
+              -o (Join-Path $packageDirectory "eris.exe") `
+              .
 
-      - name: Publish Gitea release
-        shell: bash
+          if ($LASTEXITCODE -ne 0) {
+              throw "Go build failed"
+          }
+
+          Copy-Item -LiteralPath "games.json", "README.md", "CHANGELOG.md" -Destination $packageDirectory
+          Compress-Archive -Path (Join-Path $packageDirectory "*") -DestinationPath $zipPath -CompressionLevel Optimal
+
+          $hash = (Get-FileHash -LiteralPath $zipPath -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $package.zip" | Set-Content -LiteralPath $checksumPath -Encoding ASCII
+
+      - name: Publish GitHub release
         run: |
-          package="eris-${TAG}-windows-amd64"
+          $ErrorActionPreference = "Stop"
+          $package = "eris-$env:TAG-windows-amd64"
+          $zipPath = "dist/$package.zip"
+          $checksumPath = "$zipPath.sha256"
 
-          tea login add \
-            --name ci \
-            --url "$GITEA_SERVER_URL" \
-            --no-version-check
+          gh release create $env:TAG `
+              $zipPath `
+              $checksumPath `
+              --repo $env:GH_REPO `
+              --title "Éris $env:TAG" `
+              --notes-file "release-notes.md" `
+              --verify-tag
 
-          tea releases create "$TAG" \
-            --login ci \
-            --repo "$GITEA_REPOSITORY" \
-            --title "Éris $TAG" \
-            --note-file release-notes.md \
-            --asset "dist/${package}.zip" \
-            --asset "dist/${package}.zip.sha256"
+          if ($LASTEXITCODE -ne 0) {
+              throw "GitHub release publication failed"
+          }
