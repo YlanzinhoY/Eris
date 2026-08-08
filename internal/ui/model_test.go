@@ -15,10 +15,10 @@ func TestFormatGameListRowTruncatesLongName(t *testing.T) {
 		Version: "1.1.00",
 	}
 
-	row := formatGameListRow(game, true, 42)
+	row := formatGameListRow(game, true, 43)
 
-	if got := lipgloss.Width(row); got != 42 {
-		t.Fatalf("largura da linha = %d, esperava 42: %q", got, row)
+	if got := lipgloss.Width(row); got != 43 {
+		t.Fatalf("largura da linha = %d, esperava 43: %q", got, row)
 	}
 	if strings.Contains(row, game.Name) {
 		t.Fatalf("nome longo não foi truncado: %q", row)
@@ -26,8 +26,19 @@ func TestFormatGameListRowTruncatesLongName(t *testing.T) {
 	if !strings.Contains(row, "…") {
 		t.Fatalf("linha truncada não contém reticências: %q", row)
 	}
-	if !strings.HasSuffix(row, " v1.1.00") {
+	if !strings.HasSuffix(row, "  1.1.00") {
 		t.Fatalf("versão não foi preservada: %q", row)
+	}
+}
+
+func TestFormatGameListRowSpacesNameAndVersion(t *testing.T) {
+	game := catalog.Game{Name: "crimson desert", Version: "1.17.00"}
+
+	row := formatGameListRow(game, false, 43)
+
+	want := "  crimson desert                    1.17.00"
+	if row != want {
+		t.Fatalf("linha = %q, esperava %q", row, want)
 	}
 }
 

@@ -275,7 +275,7 @@ func (m model) View() string {
 }
 
 func (m model) renderList() string {
-	width := 42
+	width := 43
 	if m.width > 0 && m.width < 92 {
 		width = max(32, m.width-8)
 	}
@@ -294,17 +294,19 @@ func (m model) renderList() string {
 }
 
 func formatGameListRow(game catalog.Game, selected bool, width int) string {
+	const versionGap = "  "
+
 	prefix := "  "
 	if selected {
 		prefix = "› "
 	}
 
 	availableWidth := max(0, width-lipgloss.Width(prefix))
-	version := truncateToWidth(" v"+game.Version, max(0, availableWidth-1))
-	nameWidth := max(0, availableWidth-lipgloss.Width(version))
+	version := truncateToWidth(game.Version, max(0, availableWidth-lipgloss.Width(versionGap)-1))
+	nameWidth := max(0, availableWidth-lipgloss.Width(versionGap)-lipgloss.Width(version))
 	name := truncateToWidth(game.Name, nameWidth)
 	padding := strings.Repeat(" ", max(0, nameWidth-lipgloss.Width(name)))
-	return prefix + name + padding + version
+	return prefix + name + padding + versionGap + version
 }
 
 func truncateToWidth(value string, width int) string {
