@@ -6,7 +6,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/enzom/hv-game-cli/internal/catalog"
+	"github.com/ylanzinhoy/eris/internal/catalog"
 )
 
 func TestFormatGameListRowTruncatesLongName(t *testing.T) {

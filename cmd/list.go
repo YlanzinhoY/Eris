@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/enzom/hv-game-cli/internal/catalog"
 	"github.com/spf13/cobra"
+	"github.com/ylanzinhoy/eris/internal/catalog"
 )
 
 func newListCommand() *cobra.Command {

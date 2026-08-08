@@ -3,11 +3,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/enzom/hv-game-cli/internal/catalog"
-	"github.com/enzom/hv-game-cli/internal/downloader"
-	"github.com/enzom/hv-game-cli/internal/launcher"
-	"github.com/enzom/hv-game-cli/internal/scanner"
 	"github.com/spf13/cobra"
+	"github.com/ylanzinhoy/eris/internal/catalog"
+	"github.com/ylanzinhoy/eris/internal/downloader"
+	"github.com/ylanzinhoy/eris/internal/launcher"
+	"github.com/ylanzinhoy/eris/internal/scanner"
 )
 
 func newDownloadCommand() *cobra.Command {

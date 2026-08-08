@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/enzom/hv-game-cli/internal/catalog"
-	"github.com/enzom/hv-game-cli/internal/scanner"
-	"github.com/enzom/hv-game-cli/internal/ui"
 	"github.com/spf13/cobra"
+	"github.com/ylanzinhoy/eris/internal/catalog"
+	"github.com/ylanzinhoy/eris/internal/scanner"
+	"github.com/ylanzinhoy/eris/internal/ui"
 )
 
 var (

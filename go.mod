@@ -1,4 +1,4 @@
-module github.com/enzom/hv-game-cli
+module github.com/ylanzinhoy/eris
 
 go 1.24.2
 

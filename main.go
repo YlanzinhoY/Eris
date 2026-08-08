@@ -1,6 +1,6 @@
 package main
 
-import "github.com/enzom/hv-game-cli/cmd"
+import "github.com/ylanzinhoy/eris/cmd"
 
 func main() {
 	cmd.Execute()
