@@ -8,6 +8,7 @@ import (
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/enzom/hv-game-cli/internal/catalog"
 	"github.com/enzom/hv-game-cli/internal/downloader"
 	"github.com/enzom/hv-game-cli/internal/launcher"
@@ -274,22 +275,46 @@ func (m model) View() string {
 }
 
 func (m model) renderList() string {
-	rows := make([]string, 0, len(m.games)+1)
-	rows = append(rows, selectedStyle.Render("JOGOS DISPONÍVEIS"))
-	for index, game := range m.games {
-		prefix := "  "
-		style := lipgloss.NewStyle().Foreground(colorText)
-		if index == m.cursor {
-			prefix = "› "
-			style = selectedStyle
-		}
-		rows = append(rows, style.Render(fmt.Sprintf("%s%-26s v%s", prefix, game.Name, game.Version)))
-	}
 	width := 42
 	if m.width > 0 && m.width < 92 {
 		width = max(32, m.width-8)
 	}
+
+	rows := make([]string, 0, len(m.games)+1)
+	rows = append(rows, selectedStyle.Render("JOGOS DISPONÍVEIS"))
+	for index, game := range m.games {
+		style := lipgloss.NewStyle().Foreground(colorText)
+		selected := index == m.cursor
+		if selected {
+			style = selectedStyle
+		}
+		rows = append(rows, style.Render(formatGameListRow(game, selected, width)))
+	}
 	return panelStyle.Width(width).Render(strings.Join(rows, "\n"))
+}
+
+func formatGameListRow(game catalog.Game, selected bool, width int) string {
+	prefix := "  "
+	if selected {
+		prefix = "› "
+	}
+
+	availableWidth := max(0, width-lipgloss.Width(prefix))
+	version := truncateToWidth(" v"+game.Version, max(0, availableWidth-1))
+	nameWidth := max(0, availableWidth-lipgloss.Width(version))
+	name := truncateToWidth(game.Name, nameWidth)
+	padding := strings.Repeat(" ", max(0, nameWidth-lipgloss.Width(name)))
+	return prefix + name + padding + version
+}
+
+func truncateToWidth(value string, width int) string {
+	if width <= 0 {
+		return ""
+	}
+	if lipgloss.Width(value) <= width {
+		return value
+	}
+	return ansi.Truncate(value, width, "…")
 }
 
 func (m model) renderDetails() string {

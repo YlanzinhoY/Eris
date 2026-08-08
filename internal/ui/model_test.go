@@ -1,0 +1,66 @@
+package ui
+
+import (
+	"strings"
+	"testing"
+	"unicode/utf8"
+
+	"github.com/charmbracelet/lipgloss"
+	"github.com/enzom/hv-game-cli/internal/catalog"
+)
+
+func TestFormatGameListRowTruncatesLongName(t *testing.T) {
+	game := catalog.Game{
+		Name:    "monster hunter stories 3: twisted reflection",
+		Version: "1.1.00",
+	}
+
+	row := formatGameListRow(game, true, 42)
+
+	if got := lipgloss.Width(row); got != 42 {
+		t.Fatalf("largura da linha = %d, esperava 42: %q", got, row)
+	}
+	if strings.Contains(row, game.Name) {
+		t.Fatalf("nome longo não foi truncado: %q", row)
+	}
+	if !strings.Contains(row, "…") {
+		t.Fatalf("linha truncada não contém reticências: %q", row)
+	}
+	if !strings.HasSuffix(row, " v1.1.00") {
+		t.Fatalf("versão não foi preservada: %q", row)
+	}
+}
+
+func TestFormatGameListRowPreservesUTF8(t *testing.T) {
+	game := catalog.Game{
+		Name:    "ação épica com dragões 🎮 e exploração",
+		Version: "2.0.0",
+	}
+
+	row := formatGameListRow(game, false, 24)
+
+	if !utf8.ValidString(row) {
+		t.Fatalf("truncamento produziu UTF-8 inválido: %q", row)
+	}
+	if got := lipgloss.Width(row); got != 24 {
+		t.Fatalf("largura da linha = %d, esperava 24: %q", got, row)
+	}
+}
+
+func TestRenderListLongNameDoesNotExpandPanel(t *testing.T) {
+	shortList := model{
+		games: []catalog.Game{{Name: "jogo curto", Version: "1.0.0"}},
+		width: 80,
+	}.renderList()
+	longList := model{
+		games: []catalog.Game{{
+			Name:    "monster hunter stories 3: twisted reflection",
+			Version: "1.1.00",
+		}},
+		width: 80,
+	}.renderList()
+
+	if got, want := lipgloss.Width(longList), lipgloss.Width(shortList); got != want {
+		t.Fatalf("nome longo expandiu o painel: largura = %d, esperava %d", got, want)
+	}
+}
