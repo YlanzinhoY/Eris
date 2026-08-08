@@ -65,7 +65,7 @@ func Download(
 	if err != nil {
 		return Result{}, fmt.Errorf("criar requisição: %w", err)
 	}
-	request.Header.Set("User-Agent", "hv-game-cli/1.0")
+	request.Header.Set("User-Agent", "eris/1.0")
 	request.Header.Set("Accept", "application/octet-stream, application/zip, application/x-rar-compressed, */*")
 
 	response, err := httpClient.Do(request)
@@ -87,7 +87,7 @@ func Download(
 		return Result{}, err
 	}
 
-	temporary, err := os.CreateTemp(destinationDirectory, ".hv-game-cli-*.part")
+	temporary, err := os.CreateTemp(destinationDirectory, ".eris-*.part")
 	if err != nil {
 		return Result{}, fmt.Errorf("criar arquivo temporário na pasta do jogo: %w", err)
 	}

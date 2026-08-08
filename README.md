@@ -9,7 +9,24 @@ de jogos e baixar releases diretamente para a pasta encontrada.
 - Bubble Tea para a interface interativa.
 - Lip Gloss para estilos e layout responsivo.
 
-## Executar
+## Instalar
+
+```powershell
+go install .
+eris
+```
+
+O `go install` gera `eris.exe` em `$(go env GOPATH)\bin`. Esse diretório precisa
+estar no `PATH` para que `eris` funcione em qualquer pasta do terminal.
+
+Para gerar um executável local sem instalar:
+
+```powershell
+go build -o eris.exe .
+.\eris
+```
+
+Durante o desenvolvimento, também é possível executar sem compilar:
 
 ```powershell
 go run .
@@ -25,16 +42,16 @@ Controles da interface:
 ## Comandos
 
 ```powershell
-go run . list
-go run . scan "crimson desert"
-go run . download "crimson desert"
+eris list
+eris scan "crimson desert"
+eris download "crimson desert"
 ```
 
 Use `--catalog` para outro JSON e `--scan-root` para priorizar um caminho ou
 incluir uma unidade de rede:
 
 ```powershell
-go run . --catalog .\games.json --scan-root D:\Games scan "crimson desert"
+eris --catalog .\games.json --scan-root D:\Games scan "crimson desert"
 ```
 
 ## Scanner

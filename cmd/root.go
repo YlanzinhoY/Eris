@@ -16,7 +16,7 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:           "hv-game-cli",
+	Use:           "eris",
 	Short:         "Encontre seus jogos e acesse releases disponíveis",
 	SilenceUsage:  true,
 	SilenceErrors: true,
