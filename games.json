@@ -1,7 +1,7 @@
 [
   {
     "game": "crimson desert",
-    "download_link": "https://bzzhr.to/2pzpviz5zfib",
+    "download_link": "https://ts.bzzhr.to/d/2pzpviz5zfib?v=qOftmbOn49PJMfy56K0H0XHFnIvItC4OEC3N_DZ7m4gHwIllOMneudUXPTG-y-2dNpkq-Yx74wk6CPiBTckPzwFqL_wjJuDY1YyBMvpYdjcKrJoItb_QpKUYkSSzy_N3oBoFwabWTmRIaT31jkRCpXUQGl8TAsMSWK0o71yWWg_hF1qRNJ6AEULaHuQ1azDoVaYXiol1KLbrUwxuvMP-at9_2h4v17YklpwYbRyso91K",
     "version": "1.17.00",
     "exe": "CrimsonDesert.exe",
     "forum": "https://cs.rin.ru/forum/viewtopic.php?f=10&t=145140&hilit=crimson+desert"
@@ -15,14 +15,16 @@
   },
   {
     "game": "assassin's creed black flag resynced",
-    "download_link": "https://bzzhr.to/j4q735mee5zj",
+    "download_link": "https://ts.bzzhr.to/d/j4q735mee5zj?v=iLasxtjS18buHENDgLjug5MksotmwfEAXOkUrOLunOvLyVV8B0AXoAhQTjFtd8rRDJZT8rxUt0Yl3apH4JQQHaG2GGbjRhn9x-cRqx_ufltZKWG3R_OTRuNreCSICedBrKQHNRgnCfdT2w3JoagGo8gyoz8EALYM6JeeGYaqbWNv0iyqjDT4aNaIGdbm1bfL393nH8on3NTqrhjW-k2CDb9MNf4GC1Xt9OwGKMpHVvQTT8rWzOgwlFYXXsH4Sk9xikbmEctIiuuayftUhtk2o1ICh8HmGvSt82JEiih_SXaOz3BPduL5Sf81SYhzAdY",
     "version": "1.0.6",
-    "exe": "ACBlackFlag.exe"
+    "exe": "ACBlackFlag.exe",
+    "forum": "https://cs.rin.ru/forum/viewtopic.php?f=41&t=157669&hilit=Assassin%27s+Creed+Black+Flag+Resynced"
   },
   {
     "game": "sid meier's civilization® vii",
     "download_link": "https://bzzhr.to/fws6rzpg03d8",
-    "version": "1.4.2"
+    "version": "1.4.2",
+    "exe": "Civ7_Win64_Vulkan_FinalRelease.exe"
   },
   {
     "game": "the hinokami chronicles 2",
