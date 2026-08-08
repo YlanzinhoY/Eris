@@ -13,7 +13,11 @@ permissions:
 jobs:
   validate:
     name: Test and build
-    runs-on: ubuntu-latest
+    runs-on: windows
+
+    defaults:
+      run:
+        shell: powershell
 
     steps:
       - name: Check out repository
