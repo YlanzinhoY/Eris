@@ -12,12 +12,15 @@ de jogos e baixar releases diretamente para a pasta encontrada.
 ## Instalar
 
 ```powershell
+$erisBin = Join-Path (go env GOPATH) "bin"
 go install .
+Copy-Item -LiteralPath .\games.json -Destination $erisBin
 eris
 ```
 
-O `go install` gera `eris.exe` em `$(go env GOPATH)\bin`. Esse diretório precisa
-estar no `PATH` para que `eris` funcione em qualquer pasta do terminal.
+O `go install` gera `eris.exe` em `$(go env GOPATH)\bin`, e o comando seguinte
+instala o catálogo ao lado dele. Esse diretório precisa estar no `PATH` para que
+`eris` funcione em qualquer pasta do terminal.
 
 Para gerar um executável local sem instalar:
 
