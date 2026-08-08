@@ -26,17 +26,17 @@ func TestFormatGameListRowTruncatesLongName(t *testing.T) {
 	if !strings.Contains(row, "…") {
 		t.Fatalf("linha truncada não contém reticências: %q", row)
 	}
-	if !strings.HasSuffix(row, "  1.1.00") {
-		t.Fatalf("versão não foi preservada: %q", row)
+	if strings.Contains(row, game.Version) {
+		t.Fatalf("versão foi exibida na lista: %q", row)
 	}
 }
 
-func TestFormatGameListRowSpacesNameAndVersion(t *testing.T) {
+func TestFormatGameListRowOmitsVersion(t *testing.T) {
 	game := catalog.Game{Name: "crimson desert", Version: "1.17.00"}
 
 	row := formatGameListRow(game, false, 43)
 
-	want := "  crimson desert                    1.17.00"
+	want := "  crimson desert"
 	if row != want {
 		t.Fatalf("linha = %q, esperava %q", row, want)
 	}

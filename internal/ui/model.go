@@ -294,19 +294,13 @@ func (m model) renderList() string {
 }
 
 func formatGameListRow(game catalog.Game, selected bool, width int) string {
-	const versionGap = "  "
-
 	prefix := "  "
 	if selected {
 		prefix = "› "
 	}
 
-	availableWidth := max(0, width-lipgloss.Width(prefix))
-	version := truncateToWidth(game.Version, max(0, availableWidth-lipgloss.Width(versionGap)-1))
-	nameWidth := max(0, availableWidth-lipgloss.Width(versionGap)-lipgloss.Width(version))
-	name := truncateToWidth(game.Name, nameWidth)
-	padding := strings.Repeat(" ", max(0, nameWidth-lipgloss.Width(name)))
-	return prefix + name + padding + versionGap + version
+	nameWidth := max(0, width-lipgloss.Width(prefix))
+	return prefix + truncateToWidth(game.Name, nameWidth)
 }
 
 func truncateToWidth(value string, width int) string {
