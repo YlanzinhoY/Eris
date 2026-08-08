@@ -7,17 +7,9 @@ interativa funciona no próprio terminal e não exige Go instalado.
 ## Instalação no Windows
 
 1. Abra a página **Releases** do repositório.
-2. Baixe o arquivo `eris-vX.Y.Z-windows-amd64.zip` da versão mais recente.
-3. Extraia o ZIP para uma pasta permanente, por exemplo `C:\Tools\Eris`.
-4. Mantenha `eris.exe` e `games.json` juntos nessa pasta.
-5. Adicione `C:\Tools\Eris` ao `PATH` do seu usuário.
-6. Feche e abra o terminal novamente.
-
-Para adicionar a pasta ao `PATH` pela interface do Windows:
-
-1. Pesquise por **Editar as variáveis de ambiente da sua conta**.
-2. Selecione `Path` em **Variáveis de usuário** e clique em **Editar**.
-3. Clique em **Novo**, informe `C:\Tools\Eris` e confirme as janelas.
+2. Baixe `eris-vX.Y.Z-windows-amd64-setup.exe` da versão mais recente.
+3. Execute o instalador e conclua a instalação.
+4. Abra um novo PowerShell ou Prompt de Comando.
 
 Valide a instalação em um terminal novo:
 
@@ -26,13 +18,25 @@ eris --version
 eris
 ```
 
-> O usuário final não precisa instalar Go. O pacote da release já contém o
-> executável e o catálogo necessários.
+O instalador coloca o Éris em `%LOCALAPPDATA%\Programs\Eris`, adiciona o comando
+`eris` ao `PATH` do usuário e cria o desinstalador. Não exige Go nem permissão de
+administrador.
+
+### Instalação portátil
+
+Se preferir não usar o instalador:
+
+1. Baixe `eris-vX.Y.Z-windows-amd64.zip` na mesma Release.
+2. Extraia o ZIP para uma pasta permanente, por exemplo `C:\Tools\Eris`.
+3. Mantenha `eris.exe` e `games.json` juntos.
+4. Adicione `C:\Tools\Eris` ao `PATH` do usuário.
+5. Abra um novo PowerShell ou Prompt de Comando.
 
 ## Atualização
 
-Baixe o ZIP da nova release e substitua `eris.exe` e `games.json` na pasta de
-instalação. Consulte o `CHANGELOG.md` ou as notas da release antes de atualizar.
+Baixe e execute o `setup.exe` da nova Release. Na instalação portátil, baixe o
+novo ZIP e substitua os arquivos na pasta de instalação. Consulte as notas da
+Release antes de atualizar.
 
 ## Interface interativa
 
@@ -102,7 +106,7 @@ sincronizado.
 - Éris baixa o arquivo, mas não executa o conteúdo.
 
 Baixe o Éris somente pela página de Releases do repositório e confira o arquivo
-`.sha256` publicado junto ao ZIP.
+`.sha256` correspondente ao `setup.exe` ou ao ZIP.
 
 ## Formato do catálogo
 
@@ -155,12 +159,17 @@ git push origin v0.0.1
 git push gitea v0.0.1
 ```
 
-O pipeline valida o código, compila `eris.exe`, inclui `games.json`, gera o ZIP
-e o checksum SHA-256, usa a seção da versão no changelog como notas e publica os
-artefatos na Release correspondente do GitHub.
+O pipeline valida o código, compila `eris.exe` e publica dois formatos na Release
+correspondente do GitHub: o instalador `setup.exe` e o pacote portátil ZIP. Cada
+arquivo possui seu próprio checksum SHA-256. A seção da versão no changelog é
+usada como notas da Release.
+
+Para gerar o instalador, o pipeline baixa o Inno Setup da Release oficial,
+verifica a atestação do GitHub e a assinatura Authenticode da Pyrsys B.V. antes
+de executar o compilador.
 
 O repositório no GitHub é a fonte principal. O Gitea recebe a mesma branch e tag
 para iniciar um Gitea Runner no Windows, registrado com o rótulo `windows:host`.
 O host precisa ter Git, Node.js, Go, Windows PowerShell e GitHub CLI disponíveis.
-O token usado na publicação deve ser armazenado no secret `GH_RELEASE_TOKEN` do
-repositório no Gitea.
+O Inno Setup não precisa estar previamente instalado. O token usado na publicação
+deve ser armazenado no secret `GH_RELEASE_TOKEN` do repositório no Gitea.

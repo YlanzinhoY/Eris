@@ -18,8 +18,11 @@ a seção correspondente à sua tag como descrição publicada no GitHub.
 - Abertura opcional do link no navegador quando a instalação não é localizada.
 - Executável `eris.exe`, comando global `eris` e informação de versão com
   `eris --version`.
+- Instalador `setup.exe` por usuário, com configuração automática do `PATH` e
+  desinstalador, sem exigir Go ou permissão de administrador.
 - Pipeline do Gitea Actions em runner Windows host para testes, build,
-  empacotamento, checksum e publicação automática de releases no GitHub.
+  empacotamento, checksums e publicação automática do instalador e do ZIP no
+  GitHub.
 
 ### Alterado
 
@@ -36,3 +39,5 @@ a seção correspondente à sua tag como descrição publicada no GitHub.
 - Prevenção de sobrescrita de arquivos existentes e de saída da pasta de destino.
 - Rejeição de respostas HTML e limite de redirecionamentos HTTP.
 - O conteúdo baixado nunca é executado automaticamente.
+- O Inno Setup usado pelo pipeline é baixado da Release oficial e validado pela
+  atestação do GitHub e pela assinatura Authenticode da Pyrsys B.V.
