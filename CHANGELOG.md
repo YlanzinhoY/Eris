@@ -1,7 +1,7 @@
 # Changelog
 
 As mudanças relevantes do Éris são registradas neste arquivo. Cada release usa
-a seção correspondente à sua tag como descrição publicada no Gitea.
+a seção correspondente à sua tag como descrição publicada no GitHub.
 
 ## [v0.0.1] - 2026-08-08
 
@@ -18,8 +18,8 @@ a seção correspondente à sua tag como descrição publicada no Gitea.
 - Abertura opcional do link no navegador quando a instalação não é localizada.
 - Executável `eris.exe`, comando global `eris` e informação de versão com
   `eris --version`.
-- Pipeline do Gitea Actions para testes, build, empacotamento, checksum e
-  publicação automática de releases versionadas.
+- Pipeline do Gitea Actions em runner Windows host para testes, build,
+  empacotamento, checksum e publicação automática de releases no GitHub.
 
 ### Alterado
 

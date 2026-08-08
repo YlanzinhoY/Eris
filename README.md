@@ -143,18 +143,24 @@ Lip Gloss para estilos e layout responsivo.
 
 ## Publicação de versões
 
-As releases são publicadas pelo Gitea Actions quando uma tag SemVer `vX.Y.Z` é
-enviada. Antes de criar a tag, adicione uma seção correspondente no
-`CHANGELOG.md`.
+As releases do GitHub são montadas localmente pelo Gitea Actions quando uma tag
+SemVer `vX.Y.Z` é enviada ao Gitea. Antes de criar a tag, adicione uma seção
+correspondente no `CHANGELOG.md`.
 
 ```powershell
+git push origin main
+git push gitea main
 git tag -a v0.0.1 -m "Release v0.0.1"
 git push origin v0.0.1
+git push gitea v0.0.1
 ```
 
 O pipeline valida o código, compila `eris.exe`, inclui `games.json`, gera o ZIP
-e o checksum SHA-256 e usa a seção da versão no changelog como notas da release.
+e o checksum SHA-256, usa a seção da versão no changelog como notas e publica os
+artefatos na Release correspondente do GitHub.
 
-Para executar o pipeline em uma instância local, habilite Actions no repositório
-e registre um runner Linux com o rótulo `ubuntu-latest`. O runner precisa ter
-`tea`, `zip` e `sha256sum` disponíveis; o Go é configurado pelo workflow.
+O repositório no GitHub é a fonte principal. O Gitea recebe a mesma branch e tag
+para iniciar um Gitea Runner no Windows, registrado com o rótulo `windows:host`.
+O host precisa ter Git, Node.js, Go, Windows PowerShell e GitHub CLI disponíveis.
+O token usado na publicação deve ser armazenado no secret `GH_RELEASE_TOKEN` do
+repositório no Gitea.
