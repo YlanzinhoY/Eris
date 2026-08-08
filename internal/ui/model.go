@@ -287,7 +287,7 @@ func (m model) renderList() string {
 	}
 
 	rows := make([]string, 0, len(m.games)+1)
-	rows = append(rows, selectedStyle.Render("JOGOS DISPONÍVEIS"))
+	rows = append(rows, selectedStyle.MarginBottom(2).Render("HYPERVISORS DISPONÍVEIS"))
 	for index, game := range m.games {
 		style := lipgloss.NewStyle().Foreground(colorText)
 		selected := index == m.cursor

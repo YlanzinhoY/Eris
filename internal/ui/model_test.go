@@ -6,6 +6,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/x/ansi"
 	"github.com/ylanzinhoy/eris/internal/catalog"
 )
 
@@ -87,4 +88,33 @@ func TestWideGameListFitsLongTitle(t *testing.T) {
 	if strings.Contains(row, "…") {
 		t.Fatalf("painel largo exibiu reticências desnecessárias: %q", row)
 	}
+}
+
+func TestRenderListAddsSpaceBelowTitle(t *testing.T) {
+	game := catalog.Game{Name: "crimson desert"}
+	rendered := ansi.Strip(model{
+		games: []catalog.Game{game},
+		width: wideLayoutMinWidth,
+	}.renderList())
+	lines := strings.Split(rendered, "\n")
+
+	for index, line := range lines {
+		if !strings.Contains(line, "HYPERVISORS DISPONÍVEIS") {
+			continue
+		}
+		if index+2 >= len(lines) {
+			t.Fatalf("não há espaço suficiente após o título: %q", rendered)
+		}
+		if strings.Contains(lines[index+1], game.Name) {
+			t.Fatalf("jogo ficou colado ao título: %q", rendered)
+		}
+		for _, followingLine := range lines[index+2:] {
+			if strings.Contains(followingLine, game.Name) {
+				return
+			}
+		}
+		t.Fatalf("jogo não apareceu depois da margem: %q", rendered)
+	}
+
+	t.Fatalf("título não encontrado: %q", rendered)
 }
