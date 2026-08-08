@@ -1,46 +1,55 @@
 # Éris
 
-CLI pública para consultar o catálogo gerado pelo scraper, localizar instalações
-de jogos e baixar releases diretamente para a pasta encontrada.
+Éris é uma aplicação de terminal para consultar releases, localizar instalações
+de jogos e baixar arquivos diretamente para a pasta encontrada. A interface
+interativa funciona no próprio terminal e não exige Go instalado.
 
-## Tecnologias
+## Instalação no Windows
 
-- Cobra para comandos e flags.
-- Bubble Tea para a interface interativa.
-- Lip Gloss para estilos e layout responsivo.
+1. Abra a página **Releases** do repositório.
+2. Baixe o arquivo `eris-vX.Y.Z-windows-amd64.zip` da versão mais recente.
+3. Extraia o ZIP para uma pasta permanente, por exemplo `C:\Tools\Eris`.
+4. Mantenha `eris.exe` e `games.json` juntos nessa pasta.
+5. Adicione `C:\Tools\Eris` ao `PATH` do seu usuário.
+6. Feche e abra o terminal novamente.
 
-## Instalar
+Para adicionar a pasta ao `PATH` pela interface do Windows:
+
+1. Pesquise por **Editar as variáveis de ambiente da sua conta**.
+2. Selecione `Path` em **Variáveis de usuário** e clique em **Editar**.
+3. Clique em **Novo**, informe `C:\Tools\Eris` e confirme as janelas.
+
+Valide a instalação em um terminal novo:
 
 ```powershell
-$erisBin = Join-Path (go env GOPATH) "bin"
-go install .
-Copy-Item -LiteralPath .\games.json -Destination $erisBin
+eris --version
 eris
 ```
 
-O `go install` gera `eris.exe` em `$(go env GOPATH)\bin`, e o comando seguinte
-instala o catálogo ao lado dele. Esse diretório precisa estar no `PATH` para que
-`eris` funcione em qualquer pasta do terminal.
+> O usuário final não precisa instalar Go. O pacote da release já contém o
+> executável e o catálogo necessários.
 
-Para gerar um executável local sem instalar:
+## Atualização
+
+Baixe o ZIP da nova release e substitua `eris.exe` e `games.json` na pasta de
+instalação. Consulte o `CHANGELOG.md` ou as notas da release antes de atualizar.
+
+## Interface interativa
+
+Execute `eris` sem argumentos para abrir a interface:
 
 ```powershell
-go build -o eris.exe .
-.\eris
+eris
 ```
 
-Durante o desenvolvimento, também é possível executar sem compilar:
+Controles:
 
-```powershell
-go run .
-```
-
-Controles da interface:
-
-- `↑`/`↓` ou `j`/`k`: navegar.
-- `s`: procurar a instalação do jogo.
-- `Enter`: procurar, confirmar e baixar o arquivo para a pasta do jogo.
-- `q`: sair.
+- `↑`/`↓` ou `j`/`k`: navegar entre os hypervisors disponíveis.
+- `s`: procurar a instalação selecionada.
+- `Enter`: procurar, confirmar e baixar para a pasta encontrada.
+- `y`: confirmar uma ação.
+- `n` ou `Esc`: cancelar uma confirmação.
+- `q` ou `Ctrl+C`: sair; durante um download, solicita o cancelamento.
 
 ## Comandos
 
@@ -48,38 +57,56 @@ Controles da interface:
 eris list
 eris scan "crimson desert"
 eris download "crimson desert"
+eris download --yes "crimson desert"
 ```
 
-Use `--catalog` para outro JSON e `--scan-root` para priorizar um caminho ou
-incluir uma unidade de rede:
+Use outro catálogo com `--catalog`:
 
 ```powershell
-eris --catalog .\games.json --scan-root D:\Games scan "crimson desert"
+eris --catalog C:\caminho\games.json list
 ```
 
-## Scanner
+Priorize uma pasta conhecida ou inclua uma unidade de rede com `--scan-root`:
 
-O scanner procura primeiro nas bibliotecas da Steam, incluindo as pastas
+```powershell
+eris --scan-root D:\Games scan "crimson desert"
+eris --scan-root \\servidor\jogos scan "crimson desert"
+```
+
+## Como o scanner funciona
+
+O scanner procura primeiro nas bibliotecas da Steam, incluindo
 `steamapps/common` e `steamapps/downloading` de todas as bibliotecas registradas
 em `libraryfolders.vdf`.
 
-Quando o catálogo contém `exe`, a busca procura esse arquivo pelo nome exato em
-qualquer profundidade. Se ele não estiver relacionado à Steam, o scanner usa
-como fallback todos os discos locais fixos e removíveis. Se ainda assim não
-encontrar, a CLI oferece abrir o `download_link` no navegador.
-
-Quando a instalação é encontrada, o download é transmitido em streaming para um
-arquivo temporário dentro da própria pasta do jogo. A TUI mostra bytes recebidos,
-tamanho total e porcentagem. Só depois de concluir e sincronizar os dados o
-arquivo recebe o nome definitivo; downloads interrompidos removem o `.part`.
+Quando o catálogo informa `exe`, a busca usa o nome exato do executável em
+qualquer profundidade. Se a instalação não estiver na Steam, o scanner usa como
+fallback os discos locais fixos e removíveis. Pastas passadas por `--scan-root`
+também entram nessa busca.
 
 Diretórios do sistema, caches de desenvolvimento, links simbólicos e locais sem
-permissão são ignorados. Use `--scan-root` para priorizar um caminho conhecido
-ou incluir caminhos externos, como compartilhamentos de rede. Assim que uma
-instalação é localizada, as demais varreduras são encerradas.
+permissão são ignorados. Quando uma instalação é encontrada, as outras
+varreduras são canceladas.
 
-Cada item do catálogo aceita `exe` para localizar a instalação pelo nome exato
-do executável.
+## Download e segurança
+
+O download é transmitido para um arquivo temporário `.part` dentro da pasta do
+jogo. O nome definitivo só é aplicado depois que todo o conteúdo foi recebido e
+sincronizado.
+
+- Nomes recebidos em `Content-Disposition` são sanitizados.
+- Arquivos existentes não são sobrescritos.
+- Respostas HTML são recusadas.
+- Downloads cancelados removem o arquivo temporário quando o encerramento é
+  concluído normalmente.
+- Éris baixa o arquivo, mas não executa o conteúdo.
+
+Baixe o Éris somente pela página de Releases do repositório e confira o arquivo
+`.sha256` publicado junto ao ZIP.
+
+## Formato do catálogo
+
+Cada item de `games.json` aceita:
 
 ```json
 {
@@ -90,8 +117,44 @@ do executável.
 }
 ```
 
-## Segurança
+`game`, `download_link` e `version` são obrigatórios. `exe` é recomendado para
+tornar a localização da instalação mais precisa.
 
-O nome recebido em `Content-Disposition` é sanitizado, arquivos existentes não
-são sobrescritos e respostas HTML são recusadas. A CLI não executa o conteúdo
-baixado. O navegador só é oferecido quando nenhuma instalação é encontrada.
+## Desenvolvimento
+
+Esta seção é destinada a colaboradores. Para trabalhar no código-fonte, instale
+a versão de Go indicada em `go.mod`.
+
+```powershell
+go test ./...
+go vet ./...
+go run .
+```
+
+Para gerar o executável local:
+
+```powershell
+go build -o eris.exe .
+.\eris.exe --version
+```
+
+O projeto usa Cobra para os comandos, Bubble Tea para a interface interativa e
+Lip Gloss para estilos e layout responsivo.
+
+## Publicação de versões
+
+As releases são publicadas pelo Gitea Actions quando uma tag SemVer `vX.Y.Z` é
+enviada. Antes de criar a tag, adicione uma seção correspondente no
+`CHANGELOG.md`.
+
+```powershell
+git tag -a v0.0.1 -m "Release v0.0.1"
+git push origin v0.0.1
+```
+
+O pipeline valida o código, compila `eris.exe`, inclui `games.json`, gera o ZIP
+e o checksum SHA-256 e usa a seção da versão no changelog como notas da release.
+
+Para executar o pipeline em uma instância local, habilite Actions no repositório
+e registre um runner Linux com o rótulo `ubuntu-latest`. O runner precisa ter
+`tea`, `zip` e `sha256sum` disponíveis; o Go é configurado pelo workflow.
